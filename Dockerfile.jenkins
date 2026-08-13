@@ -2,7 +2,6 @@ FROM jenkins/jenkins:lts
 
 USER root
 
-# Install required utilities and Docker CLI
 RUN apt-get update && \
     apt-get install -y docker.io curl ca-certificates gnupg && \
     rm -rf /var/lib/apt/lists/*
@@ -14,5 +13,8 @@ RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/s
 
 # Install Helm
 RUN curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-4 | bash
+
+# Give Jenkins access to Docker socket
+RUN usermod -aG 0 jenkins
 
 USER jenkins
