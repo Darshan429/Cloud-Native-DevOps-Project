@@ -1,17 +1,32 @@
-@Library('jenkins-shared-library') _
+pipeline {
+    agent any
 
-// create variable of map type and set the values
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
 
-def configMap = [
-    type: "nodejsEKS",
-    component: "backend",
-    project: "expense"
-]
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm install'
+            }
+        }
 
-if( ! env.BRANCH_NAME.equalsIgnoreCase('main')){
-    pipelineDecission.decidePipeline(configMap)
+        stage('Docker Build') {
+            steps {
+                sh 'docker build -t expense-app:${BUILD_NUMBER} .'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'CI Pipeline completed successfully'
+        }
+        failure {
+            echo 'CI Pipeline failed'
+        }
+    }
 }
-else{
-    echo "Proceed with CR or NON-PROD pipeline"
-}
-
