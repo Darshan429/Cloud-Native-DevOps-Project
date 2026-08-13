@@ -3,25 +3,37 @@ pipeline {
 
     stages {
 
-        stage('Checkout') {
+        stage('Docker Build') {
             steps {
-                checkout scm
+                sh 'docker build -t darshan99015/expense-app:${BUILD_NUMBER} .'
             }
         }
 
-        stage('Docker Build') {
+        stage('Docker Push') {
             steps {
-                sh 'docker build -t expense-app:${BUILD_NUMBER} .'
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-credentials',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASSWORD'
+                    )
+                ]) {
+                    sh '''
+                        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker push "$DOCKER_USER/expense-app:${BUILD_NUMBER}"
+                        docker logout
+                    '''
+                }
             }
         }
     }
 
     post {
         success {
-            echo 'CI Pipeline completed successfully'
+            echo 'CI pipeline completed successfully'
         }
         failure {
-            echo 'CI Pipeline failed'
+            echo 'CI pipeline failed'
         }
     }
 }
